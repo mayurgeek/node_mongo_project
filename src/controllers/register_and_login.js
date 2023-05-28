@@ -15,29 +15,31 @@ if(name && password){
             let saved_user_data = await  user_data.save();
             try{
                 let token = jwt.sign({ id:saved_user_data["_id"] }, process.env.JWT_SECRET_KEY);
-                res_obj["response_1"]="user created"
+                res_obj["status"]=true
+                res_obj["response"]="user created"
                 res_obj["token"]=token
             }catch(e){
-console.log(e)
+                console.log(e)
+                res_obj["token"]="token not genreted find error"
             }
-            
-            
+
             let updated_parent = await userModel.findOneAndUpdate( {refer_id:parent_id},{ $inc: { earning_amount: 10 } },{ new: true } );
             if(updated_parent){
                 console.log(updated_parent["parent_id"])
                 let updated_grandparent = await userModel.findOneAndUpdate( {refer_id:updated_parent["parent_id"]},{ $inc: { earning_amount: 2 } },{ new: true } )
                 console.log(updated_grandparent) 
             } else{
-                res_obj["error1"]="parent id wrong" 
-            }              
-                      
-            res.status(201).json({status:true,"user_detalie":saved_user_data,"response":res_obj});
+                res_obj["error"]="parent id wrong" 
+            }                       
+            res.status(200).json(res_obj);
         }catch(e){
             console.log(e["code"]==11000)
            if(e["code"]==11000){
-            res.status(500).json({status:false,"response":"user name already exists"})
+                res_obj["status"]=false
+                res_obj["response"]="user name already exists"               
+                res.status(200).json(res_obj)
            }else{
-            res.status(500).json({status:false,"response":"find some error"})
+            res.status(200).json({status:false,"response":"find some error"})
            }
             
         }        
@@ -45,7 +47,7 @@ console.log(e)
         let user_data = new userModel({name,password,refer_id,earning_amount:0});
         let saved_user_data = await  user_data.save();
         let token = jwt.sign({ id:saved_user_data["_id"] }, process.env.JWT_SECRET_KEY);
-        res.status(201).json({status:true,"user_detalie":saved_user_data,"response":"user created","token":token});  
+        res.status(201).json({status:true,"user_detaile":saved_user_data,"response":"user created","token":token});  
     }
 }else{
     console.log("please fill all inputs")
@@ -64,7 +66,7 @@ export async function user_login(req,res){
             }else{
                 console.log(user_detaile[0]["_id"])
                 let token = jwt.sign({ id:user_detaile[0]["_id"] }, process.env.JWT_SECRET_KEY);
-                res.status(200).json({"status":false,"response":user_detaile,"token":token});
+                res.status(200).json({"status":true,"response":"login successfull","user_detaile":user_detaile,"token":token});
             }
             
     }else{
