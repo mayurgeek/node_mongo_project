@@ -44,10 +44,21 @@ if(name && password){
             
         }        
     }else{
+        try{
         let user_data = new userModel({name,password,refer_id,earning_amount:0});
         let saved_user_data = await  user_data.save();
         let token = jwt.sign({ id:saved_user_data["_id"] }, process.env.JWT_SECRET_KEY);
-        res.status(201).json({status:true,"user_detaile":saved_user_data,"response":"user created","token":token});  
+        res.status(201).json({status:true,"user_detaile":saved_user_data,"response":"user created","token":token}); 
+        }catch(e){
+            if(e["code"]==11000){
+                res_obj["status"]=false
+                res_obj["response"]="user name already exists"               
+                res.status(200).json(res_obj)
+           }else{
+            res.status(200).json({status:false,"response":"find some error"})
+           }  
+        }
+        
     }
 }else{
     console.log("please fill all inputs")
@@ -91,7 +102,7 @@ console.log(user_detaile)
        total_count_with_bonus = total_count_with_bonus + user_detaile[0]["earning_amount"]
     }
 
-    res.status(200).json({"status":true,"response":total_count_with_bonus});
+    res.status(200).json({"status":true,"response":total_count_with_bonus,"name":user_detaile[0]["name"],"refer_id":user_detaile[0]["refer_id"]});
   }catch(e){
     console.log(e)
     res.status(200).json({"status":false,"response":"find error"});
